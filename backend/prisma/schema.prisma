@@ -1,0 +1,234 @@
+  // This is your Prisma schema file,
+  // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+  generator client {
+    provider = "prisma-client-js"
+  }
+
+  datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+  }
+
+  model User {
+    id          Int      @id @default(autoincrement())
+    username    String   @unique
+    email       String   @unique
+    password    String
+    fullName    String   @map("full_name")
+    phone       String?
+    address     String?
+    dateOfBirth DateTime? @db.Date @map("date_of_birth")
+    gender      Gender?
+    lifetimeSpend Decimal  @default(0) @db.Decimal(12, 2) @map("lifetime_spend")
+    membershipTier MembershipTier @default(BRONZE) @map("membership_tier")
+    memberSince  DateTime? @map("member_since")
+    role        Role     @default(CUSTOMER)
+    avatar      String?
+    preferences Json?
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @updatedAt @map("updated_at")
+
+    // Relations
+    orders            Order[]
+    reviews           Review[]
+    recommendationHistory RecommendationHistory[]
+    chatbotConversations ChatbotConversation[]
+
+    @@map("users")
+  }
+
+  model Category {
+    id          Int      @id @default(autoincrement())
+    name        String
+    description String?
+    image       String?
+    isActive    Boolean  @default(true) @map("is_active")
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    // Relations
+    dishes Dish[]
+
+    @@map("categories")
+  }
+
+  model Dish {
+    id              Int      @id @default(autoincrement())
+    name            String
+    description     String?
+    price           Decimal  @db.Decimal(10, 2)
+    image           String?
+    categoryId      Int      @map("category_id")
+    ingredients     String?
+    nutritionInfo   Json?    @map("nutrition_info")
+    tags            Json?
+    isAvailable     Boolean  @default(true) @map("is_available")
+    stock           Int      @default(0)
+    preparationTime Int?     @map("preparation_time")
+    rating          Decimal  @default(0) @db.Decimal(3, 2)
+    createdAt       DateTime @default(now()) @map("created_at")
+    updatedAt       DateTime @updatedAt @map("updated_at")
+
+    // Relations
+    category           Category @relation(fields: [categoryId], references: [id])
+    orderItems         OrderItem[]
+    reviews            Review[]
+    recommendationHistory RecommendationHistory[]
+
+    @@map("dishes")
+  }
+
+  model Order {
+    id            Int      @id @default(autoincrement())
+    userId        Int      @map("user_id")
+    orderNumber   String   @unique @map("order_number")
+    totalAmount   Decimal  @db.Decimal(10, 2) @map("total_amount")
+    status        OrderStatus @default(PENDING)
+    paymentMethod PaymentMethod @default(CASH) @map("payment_method")
+    paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+    deliveryAddress String? @map("delivery_address")
+    notes         String?
+    orderTime     DateTime @default(now()) @map("order_time")
+    deliveryTime  DateTime? @map("delivery_time")
+
+    // Relations
+    user      User        @relation(fields: [userId], references: [id])
+    orderItems OrderItem[]
+    reviews   Review[]
+
+    @@map("orders")
+  }
+
+  model OrderItem {
+    id              Int     @id @default(autoincrement())
+    orderId         Int     @map("order_id")
+    dishId          Int     @map("dish_id")
+    quantity        Int
+    price           Decimal @db.Decimal(10, 2)
+    specialRequests String? @map("special_requests")
+
+    // Relations
+    order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    dish  Dish  @relation(fields: [dishId], references: [id])
+
+    @@map("order_items")
+  }
+
+  model Review {
+    id        Int      @id @default(autoincrement())
+    userId    Int      @map("user_id")
+    dishId    Int      @map("dish_id")
+    orderId   Int      @map("order_id")
+    rating    Int
+    comment   String?
+    createdAt DateTime @default(now()) @map("created_at")
+
+    // Relations
+    user  User  @relation(fields: [userId], references: [id])
+    dish  Dish  @relation(fields: [dishId], references: [id])
+    order Order @relation(fields: [orderId], references: [id])
+
+    @@unique([orderId, dishId])
+    @@map("reviews")
+  }
+
+  model RecommendationHistory {
+    id                  Int      @id @default(autoincrement())
+    userId              Int      @map("user_id")
+    dishId              Int      @map("dish_id")
+    recommendationType  RecommendationType @map("recommendation_type")
+    confidenceScore     Decimal? @db.Decimal(3, 2) @map("confidence_score")
+    clicked             Boolean  @default(false)
+    ordered             Boolean  @default(false)
+    createdAt           DateTime @default(now()) @map("created_at")
+
+    // Relations
+    user User @relation(fields: [userId], references: [id])
+    dish Dish @relation(fields: [dishId], references: [id])
+
+    @@map("recommendation_history")
+  }
+
+  model WeatherData {
+    id                Int      @id @default(autoincrement())
+    date              DateTime @unique @db.Date
+    temperature       Decimal? @db.Decimal(5, 2)
+    weatherCondition  String?  @map("weather_condition")
+    humidity          Int?
+    createdAt         DateTime @default(now()) @map("created_at")
+
+    @@map("weather_data")
+  }
+
+  model ChatbotConversation {
+    id        Int      @id @default(autoincrement())
+    userId    Int?     @map("user_id")
+    sessionId String?  @map("session_id")
+    message   String
+    response  String?
+    intent    String?
+    createdAt DateTime @default(now()) @map("created_at")
+
+    // Relations
+    user User? @relation(fields: [userId], references: [id])
+
+    @@map("chatbot_conversations")
+  }
+
+  model Analytics {
+    id           Int      @id @default(autoincrement())
+    date         DateTime @unique @db.Date
+    totalRevenue Decimal  @default(0) @db.Decimal(12, 2) @map("total_revenue")
+    totalUsers   Int      @default(0) @map("total_users")
+    popularDishes Json?   @map("popular_dishes")
+    createdAt    DateTime @default(now()) @map("created_at")
+
+    @@map("analytics")
+  }
+
+  // Enums
+  enum Role {
+    CUSTOMER
+    ADMIN
+  }
+
+  enum OrderStatus {
+    PENDING
+    CONFIRMED
+    PREPARING
+    READY
+    DELIVERED
+    CANCELLED
+  }
+
+  enum PaymentMethod {
+    CASH
+    CARD
+    BANK_TRANSFER
+  }
+
+  enum PaymentStatus {
+    PENDING
+    PAID
+    FAILED
+  }
+
+  enum RecommendationType {
+    PERSONAL
+    TIME_BASED
+    WEATHER_BASED
+    COLLABORATIVE
+  }
+
+  enum Gender {
+    MALE
+    FEMALE
+    OTHER
+  }
+
+  enum MembershipTier {
+    BRONZE
+    SILVER
+    GOLD
+    PLATINUM
+  }

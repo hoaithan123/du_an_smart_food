@@ -1,0 +1,178 @@
+.voucher-management {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon {
+  font-size: 24px;
+  color: #ff6b6b;
+}
+
+.header-content h2 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Thống kê cards */
+.ant-statistic-title {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ant-statistic-content {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Bảng voucher */
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #f0f9ff;
+}
+
+/* Modal form */
+.ant-modal-header {
+  border-bottom: 1px solid #e8e8e8;
+  padding: 16px 24px;
+}
+
+.ant-modal-body {
+  padding: 24px;
+}
+
+.ant-form-item-label > label {
+  font-weight: 600;
+  color: #333;
+}
+
+.ant-input,
+.ant-input-number,
+.ant-select-selector {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus,
+.ant-input-number:focus,
+.ant-select-focused .ant-select-selector {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+/* Buttons */
+.ant-btn-primary {
+  background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(45deg, #ff5252, #ff7979);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.ant-btn-danger {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+}
+
+/* Tags */
+.ant-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  padding: 4px 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .voucher-management {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .header-content {
+    justify-content: center;
+  }
+  
+  .ant-col {
+    margin-bottom: 16px;
+  }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-header {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.ant-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Custom scrollbar */
+.ant-table-body::-webkit-scrollbar {
+  height: 8px;
+}
+
+.ant-table-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ant-table-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
