@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Progress, List, Avatar, Badge, Typography, Empty, message } from 'antd';
+import { Card, Row, Col, Statistic, Progress, List, Avatar, Badge, Typography, Empty, message, Spin, Tag, Alert, Button, Dropdown, Menu } from 'antd';
 import { 
   ShoppingCartOutlined, 
   UserOutlined, 
@@ -11,9 +11,12 @@ import {
   GiftOutlined,
   LogoutOutlined,
   SettingOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  FileTextOutlined,
+  ImportOutlined,
+  WarningOutlined
 } from '@ant-design/icons';
-import { Line, Pie } from '@ant-design/plots';
+import { Line, Pie, Column } from '@ant-design/plots';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../utils/api';
 import MainLayout from '../components/MainLayout';
