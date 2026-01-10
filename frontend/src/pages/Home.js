@@ -9,6 +9,7 @@ import ComboShowcase from '../components/common/ComboShowcase';
 const Home = () => {
   const [popularDishes, setPopularDishes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statsCache, setStatsCache] = useState({}); // Cache cho stats
   const [timeRecs, setTimeRecs] = useState([]);
   const [loadingTime, setLoadingTime] = useState(true);
   const [personalRecs, setPersonalRecs] = useState([]);
@@ -75,7 +76,61 @@ const Home = () => {
       const res = await dishesAPI.getDishes({ limit: 100 });
       const items = res?.data?.dishes || res?.data || [];
       const filtered = (items || []).filter((d) => Number(d?.rating || 0) >= 4.7);
-      const sorted = [...filtered].sort((a, b) => Number(b?.rating || 0) - Number(a?.rating || 0)).slice(0, 8);
+      
+      // Lấy stats cho các món top community
+      const dishesWithStats = await Promise.all(
+        filtered.map(async (dish) => {
+          // Kiểm tra cache trước
+          if (statsCache[dish.id]) {
+            return {
+              ...dish,
+              orders_count: statsCache[dish.id].orders_count,
+              units_sold: statsCache[dish.id].units_sold
+            };
+          }
+          
+          try {
+            const statsResponse = await dishesAPI.getDishStats(dish.id);
+            const stats = statsResponse.data;
+            const statsData = {
+              orders_count: stats.orders_count || 0,
+              units_sold: stats.units_sold || 0
+            };
+            
+            // Lưu vào cache
+            setStatsCache(prev => ({
+              ...prev,
+              [dish.id]: statsData
+            }));
+            
+            return {
+              ...dish,
+              ...statsData
+            };
+          } catch (error) {
+            const defaultStats = {
+              orders_count: 0,
+              units_sold: 0
+            };
+            
+            setStatsCache(prev => ({
+              ...prev,
+              [dish.id]: defaultStats
+            }));
+            
+            return {
+              ...dish,
+              ...defaultStats
+            };
+          }
+        })
+      );
+      
+      // Sort by rating trước, sau đó sort by orders_count
+      const sorted = [...dishesWithStats]
+        .sort((a, b) => Number(b?.rating || 0) - Number(a?.rating || 0))
+        .slice(0, 8);
+      
       setCommunityTop(sorted);
     } catch (e) {
       setCommunityTop([]);
@@ -285,8 +340,63 @@ const Home = () => {
 
   const fetchPopularDishes = async () => {
     try {
+      setLoading(true);
       const response = await dishesAPI.getDishes({ limit: 50 });
-      setPopularDishes(response.data.dishes);
+      const dishes = response.data.dishes;
+      
+      // Lấy stats cho từng món để hiển thị số đơn đã bán
+      // Sử dụng cache để tránh gọi lại API không cần thiết
+      const dishesWithStats = await Promise.all(
+        dishes.map(async (dish) => {
+          // Kiểm tra cache trước
+          if (statsCache[dish.id]) {
+            return {
+              ...dish,
+              orders_count: statsCache[dish.id].orders_count,
+              units_sold: statsCache[dish.id].units_sold
+            };
+          }
+          
+          try {
+            const statsResponse = await dishesAPI.getDishStats(dish.id);
+            const stats = statsResponse.data;
+            const statsData = {
+              orders_count: stats.orders_count || 0,
+              units_sold: stats.units_sold || 0
+            };
+            
+            // Lưu vào cache
+            setStatsCache(prev => ({
+              ...prev,
+              [dish.id]: statsData
+            }));
+            
+            return {
+              ...dish,
+              ...statsData
+            };
+          } catch (error) {
+            // Nếu không lấy được stats, mặc định là 0
+            const defaultStats = {
+              orders_count: 0,
+              units_sold: 0
+            };
+            
+            // Vẫn lưu vào cache để không gọi lại
+            setStatsCache(prev => ({
+              ...prev,
+              [dish.id]: defaultStats
+            }));
+            
+            return {
+              ...dish,
+              ...defaultStats
+            };
+          }
+        })
+      );
+      
+      setPopularDishes(dishesWithStats);
     } catch (error) {
       console.error('Error fetching popular dishes:', error);
     } finally {
@@ -762,7 +872,9 @@ const Home = () => {
                           {dish.description && (<p className="text-gray-600 mb-4 text-sm line-clamp-2">{dish.description}</p>)}
                           <div className="flex items-center justify-between mb-4">
                             <p className="text-accent font-bold text-xl">{formatPrice(Number(dish.price))}</p>
-                            <div className="text-xs text-gray-500 whitespace-nowrap">Đánh giá cao</div>
+                            <div className="text-xs text-gray-500 whitespace-nowrap">
+                              📦 {dish.orders_count || 0} đơn đã bán
+                            </div>
                           </div>
                           <div className="flex gap-2 items-stretch">
                             <button onClick={() => buyNowFromRec(dish, 'COMMUNITY_TOP')} className="flex-[1.7] h-11 inline-flex items-center justify-center gap-2 bg-accent text-white px-4 rounded-xl hover:opacity-95 transition-all text-sm font-semibold shadow"><span>⚡</span><span>Mua ngay</span></button>
@@ -854,7 +966,20 @@ const Home = () => {
       {/* Popular Dishes */}
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">Món ăn phổ biến</h2>
+          <div className="flex justify-between items-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-800">Món ăn phổ biến</h2>
+            <button
+              onClick={() => {
+                setStatsCache({}); // Clear cache
+                fetchPopularDishes(); // Refresh popular dishes
+                fetchCommunityTopDishes(); // Refresh community top
+              }}
+              className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-opacity-90 transition-colors text-sm font-medium"
+              disabled={loading}
+            >
+              {loading ? '⏳ Đang cập nhật...' : '🔄 Làm mới'}
+            </button>
+          </div>
           
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -897,7 +1022,7 @@ const Home = () => {
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-accent font-bold text-xl">{formatPrice(dish.price)}</p>
                       <div className="text-xs text-gray-500 whitespace-nowrap">
-                        📦 {dish.total_orders || 0} đơn đã bán
+                        📦 {dish.orders_count || 0} đơn đã bán
                       </div>
                     </div>
                     <div className="flex gap-2 items-stretch">

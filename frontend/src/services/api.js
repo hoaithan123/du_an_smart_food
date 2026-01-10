@@ -50,6 +50,7 @@ export const authAPI = {
 export const dishesAPI = {
   getDishes: (params = {}) => api.get('/dishes', { params }),
   getDish: (id) => api.get(`/dishes/${id}`),
+  getDishStats: (id) => api.get(`/dishes/${id}/stats`),
   getCategories: () => api.get('/dishes/categories'), // API chỉ trả về categories đang hoạt động
   getReviews: (id, params = {}) => api.get(`/dishes/${id}/reviews`, { params }),
   createReview: (id, data) => api.post(`/dishes/${id}/reviews`, data),
