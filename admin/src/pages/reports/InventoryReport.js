@@ -105,15 +105,15 @@ const InventoryReport = () => {
     },
     {
       title: 'Trạng thái',
-      dataIndex: 'is_available',
-      key: 'is_available',
+      dataIndex: 'so_luong',
+      key: 'trang_thai',
       width: 100,
-      render: (available) => (
+      render: (soLuong) => (
         <span style={{ 
-          color: available ? '#52c41a' : '#ff4d4f',
+          color: soLuong > 0 ? '#52c41a' : '#ff4d4f',
           fontWeight: 'bold'
         }}>
-          {available ? 'Còn hàng' : 'Hết hàng'}
+          {soLuong > 0 ? 'Còn hàng' : 'Hết hàng'}
         </span>
       )
     }

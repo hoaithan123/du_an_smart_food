@@ -1,20 +1,5 @@
 [
   {
-    "id": 1766141015835,
-    "ma_voucher": "TET",
-    "ten_voucher": "TẾT 2026",
-    "mo_ta": "DEAL DỊP TẾT",
-    "loai_giam_gia": "tien_mat",
-    "gia_tri_giam": 50000,
-    "gia_tri_toi_thieu": 60000,
-    "gia_tri_toi_da": 500000,
-    "so_luong": 10,
-    "so_luong_da_dung": 0,
-    "ngay_bat_dau": "2025-12-18T17:00:00.000Z",
-    "ngay_ket_thuc": "2025-12-30T17:00:00.000Z",
-    "trang_thai": "hoat_dong"
-  },
-  {
     "id": 1768030674366,
     "ma_voucher": "TET02",
     "ten_voucher": "TET",
