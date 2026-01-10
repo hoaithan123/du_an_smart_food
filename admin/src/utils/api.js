@@ -354,6 +354,9 @@ export const adminAPI = {
   },
   deleteProduct: (id) => api.delete(`/dishes/${id}`),
 
+  // Stock management
+  backfillStock: (defaultStock = 50) => api.post('/dishes/admin/backfill-stock', { default_stock: defaultStock }),
+
   // Reports/Analytics pass-through
   getRevenueReport: (params) => api.get('/analytics/revenue', { params }),
 
