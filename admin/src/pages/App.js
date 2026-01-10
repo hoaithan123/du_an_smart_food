@@ -6,7 +6,6 @@ import CategoryManagement from './CategoryManagement';
 import EmployeeManagement from './EmployeeManagement';
 import RevenueReport from './reports/RevenueReport';
 import InventoryReport from './reports/InventoryReport';
-import EmployeePerformanceReport from './reports/EmployeePerformanceReport';
 import PrivateRoute from '../utils/PrivateRoute';
 import Hoadonban from './Hoadonban';
 import Dashboard from './Dashboard';
@@ -58,14 +57,6 @@ function App() {
           element={
             <PrivateRoute roles={['quan_ly', 'nhan_vien_kho']}>
               <InventoryReport />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/baocao/hieusuatnhanvien"
-          element={
-            <PrivateRoute roles={['quan_ly']}>
-              <EmployeePerformanceReport />
             </PrivateRoute>
           }
         />

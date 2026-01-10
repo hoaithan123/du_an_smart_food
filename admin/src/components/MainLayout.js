@@ -93,7 +93,6 @@ const MainLayout = ({ children }) => {
       children: [
         { key: '/baocao/doanhthu', label: 'Doanh thu' },
         { key: '/baocao/tonkho', label: 'Tồn kho' },
-        { key: '/baocao/hieusuatnhanvien', label: 'Hiệu suất nhân viên' },
       ],
     },
     { key: '/hoadonban', icon: <FileTextOutlined />, label: 'Hóa đơn bán' },

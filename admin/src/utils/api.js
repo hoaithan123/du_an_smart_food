@@ -91,7 +91,7 @@ export const adminAPI = {
       quantity: Number(d.totalOrders || 0)
     }));
 
-    const topEmployees = (customers.top_customers || []).map((c) => ({
+    const topCustomers = (customers.top_customers || []).map((c) => ({
       name: c.full_name || c.email,
       revenue: Number(c.total_spent || 0)
     }));
@@ -108,7 +108,7 @@ export const adminAPI = {
         charts,
         topSellingProducts,
         lowStockProducts,
-        topEmployees,
+        topCustomers,
         recentActivities
       }
     };

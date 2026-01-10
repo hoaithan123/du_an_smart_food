@@ -39,7 +39,7 @@ const Dashboard = () => {
   const [stockByType, setStockByType] = useState([]);
   const [topSellingProducts, setTopSellingProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [topEmployees, setTopEmployees] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const navigate = useNavigate();
 
@@ -60,7 +60,7 @@ const Dashboard = () => {
         setStockByType(res.data.charts.stockByType || []);
         setTopSellingProducts(res.data.topSellingProducts || []);
         setLowStockProducts(res.data.lowStockProducts || []);
-        setTopEmployees(res.data.topEmployees || []);
+        setTopCustomers(res.data.topCustomers || []);
         setRecentActivities(res.data.recentActivities || []);
       } catch (error) {
         console.error('Lỗi tải Dashboard:', error);
@@ -355,14 +355,14 @@ const Dashboard = () => {
             ))}
           </Row>
 
-          {/* Nhân viên của tháng và Hoạt động gần đây */}
+          {/* Người mua của tháng và Hoạt động gần đây */}
           <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
             <Col xs={24} lg={12}>
               <Card
                 title={
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <TrophyOutlined style={{ color: '#faad14' }} />
-                    <span>Nhân viên của tháng</span>
+                    <span>Người mua của tháng</span>
                   </div>
                 }
                 style={{
@@ -377,9 +377,9 @@ const Dashboard = () => {
                     overflow: 'auto'
                 }}}
               >
-                {topEmployees.length > 0 ? (
+                {topCustomers.length > 0 ? (
                   <List
-                    dataSource={topEmployees}
+                    dataSource={topCustomers}
                     renderItem={(item, index) => (
                       <List.Item style={{ padding: '10px 0', border: 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
@@ -397,7 +397,7 @@ const Dashboard = () => {
                               {item.name}
                             </Text>
                             <Text type="secondary" style={{ fontSize: 12 }}>
-                              Doanh thu: {formatCurrency(item.revenue)}
+                              Chi tiêu: {formatCurrency(item.revenue)}
                             </Text>
                           </div>
                         </div>
@@ -407,7 +407,7 @@ const Dashboard = () => {
                 ) : (
                   <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Empty
-                      description="Chưa có dữ liệu nhân viên của tháng"
+                      description="Chưa có dữ liệu người mua của tháng"
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
                     />
                   </div>
