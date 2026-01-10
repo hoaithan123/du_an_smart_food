@@ -1,34 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Statistic, Progress, List, Avatar, Badge, Typography, Empty, message } from 'antd';
 import { 
-  Card, 
-  Row, 
-  Col, 
-  Statistic, 
-  message, 
-  Spin, 
-  Empty, 
-  List, 
-  Avatar, 
-  Tag, 
-  Typography, 
-  Badge
-} from 'antd';
-import {
-  ShoppingOutlined,
-  UserOutlined,
-  DollarOutlined,
-  FileTextOutlined,
-  TrophyOutlined,
+  ShoppingCartOutlined, 
+  UserOutlined, 
+  DollarOutlined, 
+  TrophyOutlined, 
   ClockCircleOutlined,
-  ShoppingCartOutlined,
-  ImportOutlined,
-  WarningOutlined,
-  TeamOutlined
+  ShoppingOutlined,
+  TeamOutlined,
+  GiftOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
+import { Line, Pie } from '@ant-design/plots';
+import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../utils/api';
 import MainLayout from '../components/MainLayout';
-import { Column, Pie } from '@ant-design/plots';
-import { useNavigate } from 'react-router-dom';
+import LogoutConfirm from '../components/LogoutConfirm';
 
 const { Title, Text } = Typography;
 
@@ -249,13 +238,34 @@ const Dashboard = () => {
     },
   };
 
-  // Pie chart data (7 ngày gần nhất)
-  const revenueByCategory7Days = [
+  // Pie chart data (7 ngày gần nhất) - lấy từ API
+  const [revenueByCategory7Days, setRevenueByCategory7Days] = useState([
     { type: 'Món chính', value: 45 },
     { type: 'Món phụ', value: 30 },
     { type: 'Đồ uống', value: 20 },
     { type: 'Tráng miệng', value: 5 },
-  ];
+  ]);
+
+  // Fetch doanh thu theo danh mục thực tế
+  useEffect(() => {
+    const fetchRevenueByCategory = async () => {
+      try {
+        const response = await adminAPI.getRevenueByCategory('7');
+        if (response.category_stats && response.category_stats.length > 0) {
+          const categoryData = response.category_stats.map(cat => ({
+            type: cat.category_name,
+            value: Math.round((cat.total_revenue / response.total_revenue) * 100) || 0
+          }));
+          setRevenueByCategory7Days(categoryData);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải doanh thu theo danh mục:', error);
+        // Giữ dữ liệu mặc định nếu API lỗi
+      }
+    };
+
+    fetchRevenueByCategory();
+  }, []);
   // Pie chart config
   const pieConfig = {
     data: revenueByCategory7Days,
