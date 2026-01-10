@@ -251,10 +251,10 @@ const Dashboard = () => {
 
   // Pie chart data (7 ngày gần nhất)
   const revenueByCategory7Days = [
-    { type: 'Fast food', value: 45 },
-    { type: 'Drink', value: 30 },
-    { type: 'Snack', value: 20 },
-    { type: 'Others', value: 5 },
+    { type: 'Món chính', value: 45 },
+    { type: 'Món phụ', value: 30 },
+    { type: 'Đồ uống', value: 20 },
+    { type: 'Tráng miệng', value: 5 },
   ];
   // Pie chart config
   const pieConfig = {
