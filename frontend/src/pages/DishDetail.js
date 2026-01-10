@@ -28,34 +28,131 @@ const DishDetail = () => {
   const [desserts, setDesserts] = useState([]);
   const [selectedDrink, setSelectedDrink] = useState(null);
   const [selectedDessert, setSelectedDessert] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const fetchExtras = async () => {
+      if (!dish) return;
+      
       try {
-        // Try to fetch by tags first
+        // Lấy tất cả danh mục để biết danh mục của món hiện tại
+        const categoriesRes = await dishesAPI.getCategories();
+        const categories = categoriesRes?.data?.categories || [];
+        setCategories(categories);
+        
+        // Tìm danh mục của món hiện tại
+        const currentCategory = categories.find(cat => cat.id === dish.category_id);
+        const currentCategoryName = currentCategory?.name?.toLowerCase() || '';
+        
+        // Xác định loại món hiện tại
+        const isDrink = currentCategoryName.includes('đồ uống') || currentCategoryName.includes('nước') || currentCategoryName.includes('drink');
+        const isDessert = currentCategoryName.includes('tráng miệng') || currentCategoryName.includes('dessert') || currentCategoryName.includes('kem');
+        const isMainCourse = !isDrink && !isDessert; // Món chính
+        
+        // Fetch tất cả món ăn
+        const allDishesRes = await dishesAPI.getDishes({ limit: 100 });
+        const allDishes = allDishesRes?.data?.dishes || [];
+        
+        // Fetch theo tags để có dữ liệu chính xác hơn
         const [drinkRes, dessertRes] = await Promise.all([
-          dishesAPI.getDishes({ tags: 'drink', limit: 12 }),
-          dishesAPI.getDishes({ tags: 'dessert', limit: 12 })
+          dishesAPI.getDishes({ tags: 'drink', limit: 50 }),
+          dishesAPI.getDishes({ tags: 'dessert', limit: 50 })
         ]);
-        let dks = drinkRes?.data?.dishes || [];
-        let dss = dessertRes?.data?.dishes || [];
-        // Fallback: popular if tags not available
-        if (dks.length === 0) {
-          const pop = await dishesAPI.getDishes({ limit: 12, sort: 'popular' });
-          dks = (pop?.data?.dishes || []).slice(0, 12);
+        
+        let drinks = drinkRes?.data?.dishes || [];
+        let desserts = dessertRes?.data?.dishes || [];
+        
+        // Fallback nếu không có tags
+        if (drinks.length === 0) {
+          drinks = allDishes.filter(d => {
+            const cat = categories.find(c => c.id === d.category_id);
+            const catName = cat?.name?.toLowerCase() || '';
+            return catName.includes('đồ uống') || catName.includes('nước') || catName.includes('drink');
+          });
         }
-        if (dss.length === 0) {
-          const pop2 = await dishesAPI.getDishes({ limit: 12, sort: 'popular' });
-          dss = (pop2?.data?.dishes || []).slice(0, 12);
+        
+        if (desserts.length === 0) {
+          desserts = allDishes.filter(d => {
+            const cat = categories.find(c => c.id === d.category_id);
+            const catName = cat?.name?.toLowerCase() || '';
+            return catName.includes('tráng miệng') || catName.includes('dessert') || catName.includes('kem');
+          });
         }
-        setDrinks(dks.filter(x => x.id !== Number(id)));
-        setDesserts(dss.filter(x => x.id !== Number(id)));
+        
+        // Lọc đồ uống cho combo
+        let filteredDrinks = drinks.filter(d => {
+          // Luôn loại bỏ món hiện tại
+          if (d.id === dish.id) return false;
+          
+          // Nếu món hiện tại là đồ uống, hiển thị món chính thay vì đồ uống khác
+          if (isDrink) {
+            const drinkCategory = categories.find(cat => cat.id === d.category_id);
+            const drinkCategoryName = drinkCategory?.name?.toLowerCase() || '';
+            // Không hiển thị đồ uống cùng danh mục
+            return !drinkCategoryName.includes('đồ uống') && !drinkCategoryName.includes('nước') && !drinkCategoryName.includes('drink');
+          }
+          
+          return true;
+        });
+        
+        // Nếu món hiện tại là đồ uống, thêm món chính vào danh sách đồ uống để chọn
+        if (isDrink) {
+          const mainCourses = allDishes.filter(d => {
+            if (d.id === dish.id) return false; // Loại bỏ món hiện tại
+            
+            const cat = categories.find(c => c.id === d.category_id);
+            const catName = cat?.name?.toLowerCase() || '';
+            // Chỉ lấy món chính (không phải đồ uống, tráng miệng)
+            return !catName.includes('đồ uống') && !catName.includes('nước') && !catName.includes('drink') &&
+                   !catName.includes('tráng miệng') && !catName.includes('dessert') && !catName.includes('kem');
+          });
+          
+          // Thêm món chính vào đầu danh sách
+          filteredDrinks = [...mainCourses.slice(0, 12), ...filteredDrinks];
+        }
+        
+        // Lọc tráng miệng cho super combo
+        let filteredDesserts = desserts.filter(d => {
+          // Luôn loại bỏ món hiện tại
+          if (d.id === dish.id) return false;
+          
+          // Nếu món hiện tại là tráng miệng, hiển thị các loại khác
+          if (isDessert) {
+            const dessertCategory = categories.find(cat => cat.id === d.category_id);
+            const dessertCategoryName = dessertCategory?.name?.toLowerCase() || '';
+            // Không hiển thị tráng miệng cùng danh mục
+            return !dessertCategoryName.includes('tráng miệng') && !dessertCategoryName.includes('dessert') && !dessertCategoryName.includes('kem');
+          }
+          
+          return true;
+        });
+        
+        // Nếu món hiện tại là đồ uống, thêm món chính vào danh sách tráng miệng cho super combo
+        if (isDrink) {
+          const mainCourses = allDishes.filter(d => {
+            if (d.id === dish.id) return false; // Loại bỏ món hiện tại
+            
+            const cat = categories.find(c => c.id === d.category_id);
+            const catName = cat?.name?.toLowerCase() || '';
+            // Chỉ lấy món chính (không phải đồ uống, tráng miệng)
+            return !catName.includes('đồ uống') && !catName.includes('nước') && !catName.includes('drink') &&
+                   !catName.includes('tráng miệng') && !catName.includes('dessert') && !catName.includes('kem');
+          });
+          
+          // Thêm món chính vào danh sách tráng miệng
+          filteredDesserts = [...mainCourses.slice(0, 12), ...filteredDesserts];
+        }
+        
+        // Giới hạn số lượng hiển thị
+        setDrinks(filteredDrinks.slice(0, 12));
+        setDesserts(filteredDesserts.slice(0, 12));
       } catch (e) {
-        // ignore
+        console.error('Error fetching extras:', e);
       }
     };
+    
     fetchExtras();
-  }, [id]);
+  }, [dish, id]);
 
   const handleAddToCart = () => {
     if (!user) {
@@ -81,18 +178,32 @@ const DishDetail = () => {
       return;
     }
     if (!dish) return;
+    
+    const currentCategory = categories.find(cat => cat.id === dish.category_id);
+    const currentCategoryName = currentCategory?.name?.toLowerCase() || '';
+    const isDrink = currentCategoryName.includes('đồ uống') || currentCategoryName.includes('nước') || currentCategoryName.includes('drink');
+    
     if (!selectedDrink) {
-      toast.error('Vui lòng chọn đồ uống');
+      toast.error(isDrink ? 'Vui lòng chọn món chính' : 'Vui lòng chọn đồ uống');
       return;
     }
+    
     const items = [dish, selectedDrink];
     if (comboType === 'super') {
       if (!selectedDessert) {
-        toast.error('Vui lòng chọn tráng miệng');
+        const isDessert = currentCategoryName.includes('tráng miệng') || currentCategoryName.includes('dessert') || currentCategoryName.includes('kem');
+        if (isDessert) {
+          toast.error('Vui lòng chọn món chính');
+        } else if (isDrink) {
+          toast.error('Vui lòng chọn tráng miệng');
+        } else {
+          toast.error('Vui lòng chọn tráng miệng');
+        }
         return;
       }
       items.push(selectedDessert);
     }
+    
     const sum = items.reduce((s, it) => s + Number(it.price || 0), 0);
     const rate = comboType === 'super' ? 0.10 : 0.07; // Super 10%, Combo 7%
     let target = Math.round(sum * (1 - rate));
@@ -359,13 +470,36 @@ const DishDetail = () => {
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-800">
-                {comboType === 'super' ? 'Chọn đồ uống & tráng miệng' : 'Chọn đồ uống'}
+                {(() => {
+                  const currentCategory = categories?.find(cat => cat.id === dish?.category_id);
+                  const currentCategoryName = currentCategory?.name?.toLowerCase() || '';
+                  const isDrink = currentCategoryName.includes('đồ uống') || currentCategoryName.includes('nước') || currentCategoryName.includes('drink');
+                  const isDessert = currentCategoryName.includes('tráng miệng') || currentCategoryName.includes('dessert') || currentCategoryName.includes('kem');
+                  
+                  if (comboType === 'super') {
+                    if (isDrink) return 'Chọn món chính & tráng miệng';
+                    if (isDessert) return 'Chọn đồ uống & món chính';
+                    return 'Chọn đồ uống & tráng miệng';
+                  } else {
+                    if (isDrink) return 'Chọn món chính';
+                    return 'Chọn đồ uống';
+                  }
+                })()}
               </h3>
               <button onClick={() => setShowComboModal(false)} className="text-gray-500 hover:text-gray-700">✖</button>
             </div>
             <div className="p-6 space-y-6">
               <div>
-                <div className="font-semibold text-gray-800 mb-2">Đồ uống</div>
+                <div className="font-semibold text-gray-800 mb-2">
+                  {(() => {
+                    const currentCategory = categories?.find(cat => cat.id === dish?.category_id);
+                    const currentCategoryName = currentCategory?.name?.toLowerCase() || '';
+                    const isDrink = currentCategoryName.includes('đồ uống') || currentCategoryName.includes('nước') || currentCategoryName.includes('drink');
+                    
+                    if (isDrink) return 'Món chính';
+                    return 'Đồ uống';
+                  })()}
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-56 overflow-auto">
                   {drinks.map((d) => (
                     <button
@@ -381,7 +515,18 @@ const DishDetail = () => {
               </div>
               {comboType === 'super' && (
                 <div>
-                  <div className="font-semibold text-gray-800 mb-2">Tráng miệng</div>
+                  <div className="font-semibold text-gray-800 mb-2">
+                    {(() => {
+                      const currentCategory = categories?.find(cat => cat.id === dish?.category_id);
+                      const currentCategoryName = currentCategory?.name?.toLowerCase() || '';
+                      const isDrink = currentCategoryName.includes('đồ uống') || currentCategoryName.includes('nước') || currentCategoryName.includes('drink');
+                      const isDessert = currentCategoryName.includes('tráng miệng') || currentCategoryName.includes('dessert') || currentCategoryName.includes('kem');
+                      
+                      if (isDrink) return 'Tráng miệng';
+                      if (isDessert) return 'Món chính';
+                      return 'Tráng miệng';
+                    })()}
+                  </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-56 overflow-auto">
                     {desserts.map((d) => (
                       <button
