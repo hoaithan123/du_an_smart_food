@@ -1062,30 +1062,6 @@ const Home = () => {
           </div>
         </div>
       </div>
-
-      {/* Stats Section */}
-      <div className="py-16 bg-gradient-to-r from-peach_from to-peach_to text-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">1000+</div>
-              <div className="text-lg opacity-90">Món ăn đa dạng</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">50K+</div>
-              <div className="text-lg opacity-90">Khách hàng tin tưởng</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">99%</div>
-              <div className="text-lg opacity-90">Độ hài lòng</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">24/7</div>
-              <div className="text-lg opacity-90">Hỗ trợ khách hàng</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
