@@ -55,6 +55,8 @@ export const adminAPI = {
     const dishesStats = dishesStatsRes?.data || {};
     const popularDishes = dishesStats?.popular_dishes || [];
     const lowSelling = dishesStats?.low_selling_dishes || [];
+    const lowStock = dishesStats?.low_stock_dishes || []; // Thêm debug
+    console.log('Low stock dishes from API:', lowStock); // Debug log
     const customers = customersRes?.data || {};
     const orders = recentOrdersRes?.data?.orders || [];
     const totalDishes = Number(dishesCountRes?.data?.total || 0);
@@ -86,9 +88,9 @@ export const adminAPI = {
       sold: Number(d.total_quantity || 0)
     }));
 
-    const lowStockProducts = (dishesStats?.low_stock_dishes || []).map((d) => ({
+    const lowStockProducts = (lowStock || []).map((d) => ({
       name: d.name,
-      quantity: Number(d.stock || 0) // Dùng stock thực tế
+      quantity: Number(d.stock || 0) // Dùng lowStock thay vì lowSelling
     }));
 
     const topCustomers = (customers.top_customers || []).map((c) => ({
