@@ -355,11 +355,43 @@ router.get('/dishes', authenticateToken, requireAdmin, async (req, res) => {
       }
     }
 
+    // Món ăn tồn kho thấp: lấy các món có stock <= 10
+    const lowStockDishes = await prisma.dish.findMany({
+      where: {
+        isAvailable: true,
+        stock: {
+          lte: 10 // Tồn kho <= 10
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        price: true,
+        stock: true
+      },
+      orderBy: {
+        stock: 'asc' // Sắp xếp theo tồn kho tăng dần
+      },
+      take: 10 // Lấy 10 sản phẩm tồn kho thấp nhất
+    });
+
+    // Map data cho frontend
+    const lowStockMapped = lowStockDishes.map(d => ({ 
+      id: d.id, 
+      name: d.name, 
+      image: d.image, 
+      price: d.price, 
+      stock: d.stock,
+      totalOrders: 0 // Không cần totalOrders cho cảnh báo tồn kho
+    }));
+
     const lowSellingDishes = [...zeroMapped, ...lowMapped];
 
     res.json({
       popular_dishes: popularDishesWithInfo,
-      low_selling_dishes: lowSellingDishes
+      low_selling_dishes: lowSellingDishes,
+      low_stock_dishes: lowStockMapped // Thêm low_stock_dishes
     });
   } catch (error) {
     console.error('Get dish stats error:', error);

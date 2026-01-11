@@ -86,9 +86,9 @@ export const adminAPI = {
       sold: Number(d.total_quantity || 0)
     }));
 
-    const lowStockProducts = (lowSelling || []).map((d) => ({
+    const lowStockProducts = (dishesStats?.low_stock_dishes || []).map((d) => ({
       name: d.name,
-      quantity: Number(d.totalOrders || 0)
+      quantity: Number(d.stock || 0) // Dùng stock thực tế
     }));
 
     const topCustomers = (customers.top_customers || []).map((c) => ({
