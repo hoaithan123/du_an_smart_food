@@ -113,6 +113,29 @@ router.post('/', authenticateToken, async (req, res) => {
         });
       }
 
+      // Cập nhật lifetime spend và membership tier ngay cho thanh toán không phải COD
+      if (mappedPaymentMethod !== 'CASH') {
+        const updatedUser = await tx.user.update({
+          where: { id: userId },
+          data: {
+            lifetimeSpend: { increment: totalAmount }
+          },
+          select: { id: true, lifetimeSpend: true, membershipTier: true, memberSince: true }
+        });
+
+        const lifetime = Number(updatedUser.lifetimeSpend || 0);
+        const computedTier = computeTier(lifetime);
+        if (computedTier !== updatedUser.membershipTier) {
+          await tx.user.update({
+            where: { id: updatedUser.id },
+            data: {
+              membershipTier: computedTier,
+              memberSince: updatedUser.memberSince ?? new Date()
+            }
+          });
+        }
+      }
+
       return newOrder;
     });
 
@@ -123,7 +146,8 @@ router.post('/', authenticateToken, async (req, res) => {
         order_number: order.orderNumber,
         total_amount: order.totalAmount,
         status: order.status
-      }
+      },
+      membershipUpdated: mappedPaymentMethod !== 'CASH' // Thêm flag để frontend biết cần refresh
     });
   } catch (error) {
     console.error('Create order error:', error);

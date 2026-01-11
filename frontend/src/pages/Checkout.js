@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useQueryClient } from 'react-query';
 import { ordersAPI, authAPI, vouchersAPI } from '../services/api';
 
 const Checkout = () => {
   const { items: cartItems, getSelectedItems, getSelectedTotalPrice, clearCart } = useCart();
   const { user, showNotification } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const [loading, setLoading] = useState(false);
   const [orderPlacing, setOrderPlacing] = useState(false);
@@ -431,6 +433,12 @@ const Checkout = () => {
       } catch (_) {}
       showNotification('Đặt hàng thành công! 🎉', 'success');
       clearCart();
+      
+      // Refresh profile data nếu membership được cập nhật
+      if (response.data.membershipUpdated) {
+        queryClient.invalidateQueries('profile');
+      }
+      
       navigate('/orders');
       
     } catch (error) {
