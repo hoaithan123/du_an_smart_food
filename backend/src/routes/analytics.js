@@ -358,23 +358,28 @@ router.get('/dishes', authenticateToken, requireAdmin, async (req, res) => {
     // Món ăn tồn kho thấp: lấy các món có stock <= 10
     const lowStockDishes = await prisma.dish.findMany({
       where: {
-        isAvailable: true,
         stock: {
-          lte: 10 // Tồn kho <= 10
+          lte: 10 // Tồn kho <= 10 (bao gồm cả stock = 0)
         }
+        // Bỏ điều kiện isAvailable để lấy cả sản phẩm hết hàng
       },
       select: {
         id: true,
         name: true,
         image: true,
         price: true,
-        stock: true
+        stock: true,
+        isAvailable: true // Thêm để frontend biết trạng thái
       },
       orderBy: {
         stock: 'asc' // Sắp xếp theo tồn kho tăng dần
       },
       take: 10 // Lấy 10 sản phẩm tồn kho thấp nhất
     });
+
+    // Debug log
+    console.log('Low stock dishes found:', lowStockDishes.length);
+    console.log('Low stock details:', lowStockDishes.map(d => ({ name: d.name, stock: d.stock, available: d.isAvailable })));
 
     // Map data cho frontend
     const lowStockMapped = lowStockDishes.map(d => ({ 
@@ -383,6 +388,7 @@ router.get('/dishes', authenticateToken, requireAdmin, async (req, res) => {
       image: d.image, 
       price: d.price, 
       stock: d.stock,
+      isAvailable: d.isAvailable, // Thêm isAvailable
       totalOrders: 0 // Không cần totalOrders cho cảnh báo tồn kho
     }));
 
